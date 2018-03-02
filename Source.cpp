@@ -31,8 +31,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:
 		if (LOWORD(wParam) == 100) // INIファイル書き込み
 		{
+#ifdef UNICODE
+			// Unicode で書き込むためには、あらかじめ BOM を設定しておく必要があります。
+			HANDLE hFile = CreateFile(szINIFilePath, GENERIC_WRITE, 0, NULL, CREATE_NEW, 0, NULL);
+			if (hFile != INVALID_HANDLE_VALUE)
+			{
+				BYTE bom[2] = { 0xFF, 0xFE };
+				DWORD dwWritten;
+				WriteFile(hFile, bom, 2, &dwWritten, NULL);
+				CloseHandle(hFile);
+			}
+#endif
 			// 文字列をINIファイルに保存
-			WritePrivateProfileString(TEXT("APP"), TEXT("VALUE1"), TEXT("STRING1"), szINIFilePath);
+			WritePrivateProfileString(TEXT("APP"), TEXT("VALUE1"), TEXT("あいうえお"), szINIFilePath);
 			// 整数値をINIファイルに保存（実際には数値を書き込むAPIは無いので文字列に変換して保存）
 			wsprintf(szText, TEXT("%d"), 123);
 			WritePrivateProfileString(TEXT("APP"), TEXT("VALUE2"), szText, szINIFilePath);
